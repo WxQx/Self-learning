@@ -43,3 +43,166 @@ writer=pd.ExcelWriter()
 data_frame.to excel(writer, sheet_name='',index=False)
 write.save()
 #just different from the read part: one code into two code
+
+
+处理 Excel 文件主要有三个库。
+
+
+xlrd
+读取 Excel 文件。
+
+
+xlwt
+向 Excel 文件写入，并设置格式。
+
+
+xlutils
+一组 Excel 高级操作工具(需要先安装 xlrd 和 xlwt)。
+
+
+在用到这三个库的时候你需要分别安装。但本章只会用到 xlrd。
+下面一步步的讲解如何解析 Excel 文件。
+先导入 xlrd  库，然后打开工作簿并保存在 book 变量中。
+import xlrd
+book = xlrd.open_workbook('./resource/data.xlsx')
+复制代码与 CSV 不同，Excel 工作簿可以有多个标签(tab)或工作表(sheet)。想要获取数据，我们要找到包含目标数据的工作表。
+如果有几个工作表，你可以猜一下索引号，但如果工作表很多的话就没法猜了。所以你应该知道 book.sheet_by_name(somename) 命令，其中 somename 是你要访问工作表的名字。
+我们来看一下工作表都有哪些名字:
+import xlrd
+
+book = xlrd.open_workbook('./resource/data.xlsx')
+
+for sheet in book.sheets():
+    print(sheet.name)
+复制代码book.sheets() 列出所有的 sheet，sheet.name 打印出 sheet 的名字。输出：
+Data Notes
+Table 9
+复制代码我们要找的工作表是 Table 9。所以我们把这个名字添加到脚本中:
+import xlrd
+
+book = xlrd.open_workbook('./resource/data.xlsx')
+
+sheet = book.sheet_by_name('Table 9')
+print(sheet)
+复制代码运行会输出类似这样的值：
+<xlrd.sheet.Sheet object at 0x106af8898>
+复制代码要查看 sheet 都有什么方法，可以用 print(dir(sheet))。从打印的结果中找到一个 nrows 方法，sheet.nrows 返回这个 sheet 一共有多少行。我们将用 nrows 来遍历每一行的内容。
+import xlrd
+
+book = xlrd.open_workbook('./resource/data.xlsx')
+
+sheet = book.sheet_by_name('Table 9')
+
+for i in range(sheet.nrows):
+    print(sheet.row_values(i))
+复制代码运行程序得到如下图的输出：
+
+取到表格的数据之后，接下来就该想怎么格式化这些数据，将有用的信息提取出来。提取信息的格式有很多种，这里我们用其中一种：
+{
+  u'Afghanistan': {
+		'child_labor': {
+			'female': [9.6, ''],
+			'male': [11.0, ''], 
+			'total': [10.3, '']
+		},
+		'child_marriage': {
+	     'married_by_15': [15.0, ''],
+	     'married_by_18': [40.4, '']
+		} 
+	}, 
+  u'Albania': {
+   	'child_labor': {
+     	'female': [9.4, u'  '],
+    	'male': [14.4, u'  '],
+      'total': [12.0, u'  ']
+  	},
+    'child_marriage': {
+    	'married_by_15': [0.2, ''],
+    	'married_by_18': [9.6, '']
+		} 
+	},
+	...
+}
+复制代码如何确定有用的数据从第几行开始
+能够读取 Excel 数据之后，还要从中提取有用的信息，了解如何从纷繁复杂的数据提取关键数据很重要。
+方法一：用软件打开Excel直观判断
+首先最简单的方法是用软件打开 Excel 文件直观的看，如下图：
+
+我们上面定义的格式是以国家为键，所以首先应该找到国家。观察 Excel 表格，从第15 行开始显示国家数据。Child labour 和 Child marriage 的数据从第E列到第N列。
+方法二：用程序多次试验
+如果不想用第一种方法，或者电脑上没有软件可以打开文件，可以尝试第二种方法：写代码多次试验。
+这个方法用到了计数器原理。先打印前10行，看有没有想要的数据，如果没有再打印11-20行，这样一个区间一个区间的排查，直到确定准确的行数。
+代码如下：
+import xlrd
+
+book = xlrd.open_workbook('./resource/data.xlsx')
+
+sheet = book.sheet_by_name('Table 9')
+
+count = 0
+for i in range(sheet.nrows):
+    if count < 10:
+        row = sheet.row_values(i)
+        print(i, row)
+    count += 1
+复制代码先打印排查了前10行，查看控制台输出没有找到想要的国家数据，继续调整试验：
+import xlrd
+
+book = xlrd.open_workbook('./resource/data.xlsx')
+
+sheet = book.sheet_by_name('Table 9')
+
+count = 0
+for i in range(10, sheet.nrows):
+    if count < 10:
+        row = sheet.row_values(i)
+        print(i, row)
+    count += 1
+复制代码我们已经知道了前10行没有想要的数据，所以 range 直接改成 range(10, sheet.nrows) 从第10行开始打印，其他代码不变。再次运行程序，得到如下输出：
+
+可以看到从第14行开始出现了国家名字，这就是我们要找的数据。
+三、组装数据
+找到想要的数据在第几行第几列之后，就可以按之前定义的格式写代码提取组装数据啦。
+import xlrd
+import pprint
+
+book = xlrd.open_workbook('./resource/data.xlsx')
+
+sheet = book.sheet_by_name('Table 9')
+
+# 定义存放数据的字典
+data = {}
+for i in range(14, sheet.nrows):
+    row = sheet.row_values(i)
+    # 取出国家名字
+    country = row[1]
+    # 按照给定的格式组装数据
+    data[country] = {
+        'child_labor': {
+            'total': [row[4], row[5]],
+            'male': [row[6], row[7]],
+            'female': [row[8], row[9]],
+        },
+        'child_marriage': {
+            'married_by_15': [row[10], row[11]],
+            'married_by_18': [row[12], row[13]],
+        }
+    }
+    # 最后一个国家是 Zimbabwe，判断到 Zimbabwe 之后就 break 跳出循环
+    if country == 'Zimbabwe':
+        break
+
+# 打印数据
+pprint.pprint(data)
+复制代码打印复杂对象时使用 pprint 格式更美观。
+四、总结
+
+处理 Excel 的三个库：xlrd，xlwt，xlutils。根据需要决定用哪些库。
+解析出 Excel 之后，通过两种方法确定想要数据的位置：用图形化界面打开直接观察和通过程序一步步筛选。如果不知道一个对象都有什么命令，可以打印 dir(obj) 来查看，其中 obj 是想要查看相关命令的对象。
+提前想好最终想输出的格式，有格式之后组装数据会比较容易。
+打印复杂对象时使用 pprint 格式更美观。
+
+作者：solocoder
+链接：https://juejin.im/post/5c67abb9f265da2d9e174402
+来源：掘金
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
