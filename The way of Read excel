@@ -11,3 +11,35 @@ print(d2)
 
 
 
+from internet:
+
+import pandas as pd
+data_frame=pd.read_excel(,sheet_name='')
+writer=pd.ExcelWriter()
+data_frame.to_excel(writer,sheet_name='',index=False)
+writer.save()
+
+#!/usr/bin/env python3
+import pandas as pd
+#读取工作簿和工作簿中的工作表
+data_frame=pd.read_excel('E:\\研究生学习\\python数据\\实验数据\\Excel文件实验数据\\sales_2017.xlsx',sheet_name='january_2013')
+#新建一个工作簿
+writer=pd.ExcelWriter('E:\\研究生学习\\python数据\\实验数据\\Excel文件实验数据\\sale_january_2017_in_pandas.xlsx')
+#使用to_excel将之前读取的工作簿中工作表的数据写入到新建的工作簿的工作表中
+data_frame.to_excel(writer,sheet_name='jan_2017_output_sheet',index=False)
+#保存并且关闭工作簿
+writer.save()
+--------------------- 
+作者：DM_learner 
+来源：CSDN 
+原文：https://blog.csdn.net/DM_learner/article/details/79186541 
+版权声明：本文为博主原创文章，转载请附上博文链接！
+
+
+import pandas as pd
+writer_1=pd.ExcelFile()
+data_frame=write_1.parse()
+writer=pd.ExcelWriter()
+data_frame.to excel(writer, sheet_name='',index=False)
+write.save()
+#just different from the read part: one code into two code
