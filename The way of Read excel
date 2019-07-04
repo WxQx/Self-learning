@@ -1,0 +1,13 @@
+import pandas as pd
+d2=pd.read_excel('z.xlsx')
+#ModuleNotFoundError                       Traceback (most recent call last)
+#ModuleNotFoundError: No module named 'xlrd'
+#need to install the relevant modul
+pip install xlrd
+d2=pd.read_excel('z.xlsx')
+print(d2)
+# then the probelm is that it can read only the first worksheet but this workbook has two work sheet
+?? to be find the new code to solve it.
+
+
+
