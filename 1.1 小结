@@ -7,3 +7,18 @@ df.head()
 df.drop(('g_sort','score'), axis=1, inplace=True)
 
 现在第一次读取数据时作改动
+pd.read_excel(io, sheet_name=0, header=0, names=None, index_col=None, usecols=None)
+name:如果没有表头, 可用此参数传入列表做表头
+header:指定数据表的表头,默认值为0, 即将第一行作为表头
+index_col:用作行索引的列编号或者列名，如果给定一个序列则有多个行索引。一般可以设定index_col=False指的是pandas不适用第一列作为行索引。
+usecols：读取指定的列, 也可以通过名字或索引值
+dafra=pd.read_excel('z.xlsx', sheetname='job', usecols=['city','salary','industry','geo'])
+dafra.head()
+dafra=pd.read_excel('z.xlsx', sheetname='job', usecols=['city','salary','industry','geo','workingExp','jobName','eduLevel'])
+dafra.head()
+解决第一个问题
+
+2列变为两列分别命名为 lowest-salary 和 highest-salary，格式均为浮点型，数据分别为斜杠左右两侧的数据
+dafra('lowest-salary')=dafra('salary').map(lambda x:x.split('/')[0])
+dafra('highest-salary')=dafra('salary').map(lambda x:x.split('/')[1])
+？一直出问题！
